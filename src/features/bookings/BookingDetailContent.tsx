@@ -3,14 +3,14 @@ import { Icon } from "../../ui/Icon";
 import { Button } from "../../ui/Button";
 import { Badge } from "../../ui/Badge";
 import { Modal } from "../../ui/Modal";
-import type { BookingDetailHeroProps} from "../../types/types";
+import type { BookingDetailHeroProps } from "../../types/types";
 import { breakString, formatBookingDate } from "../../utils/helpers";
 import { CountryFlag } from "../../data/getCountryFlag";
 import { useCheckin } from "../../check-in-out/useCheckin";
 import useDeleteBooking from "./useDeleteBooking";
 import { useCheckout } from "../../check-in-out/useCheckout";
-
-
+import UseSettings from "../settings/UseSettings";
+import { SpinnerSimple } from "../../ui/Spinner";
 
 export default function BookingDetailContent({
   booking,
@@ -28,7 +28,7 @@ export default function BookingDetailContent({
     cabinPrice,
     status,
     isPaid,
-    hasBreakfast : breakfast,
+    hasBreakfast: breakfast,
     observations,
     cabins: { name: cabinName, image: cabinImage, regularPrice, discount },
     guests: {
@@ -40,43 +40,47 @@ export default function BookingDetailContent({
     },
   } = booking;
 
-
   //Custom hooks - this 3 recives the booking id freom the oclick buttons
   const { isPending: isDeleting, mutate: deleteBooking } = useDeleteBooking();
   const { checkin, isCheckingIn } = useCheckin(); //use to check in
   const { checkout, isCheckingOut } = useCheckout(); //use to check in
-
-  const [hasBreakfast, setHasBreakfast] = useState(
-    breakfast ?? false,
-  );
+  const { settings, isLoading: isLoadingSettings } = UseSettings();
+  const [hasBreakfast, setHasBreakfast] = useState(breakfast ?? false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(isPaid || false);
 
-  const breakFastPerPerson = 200; // will come from backend
+  const isCheckedIn = booking.status === "checked-in";
+  const isCheckedOut = booking.status === "checked-out";
 
+  const breakfastPrice = settings?.breakfastPrice || 0;
+  const stayPrice = cabinPrice * numNights; //no discount needed since we already added discount in the seeded data
 
-  const stayPrice = (cabinPrice - discount) * numNights;
-
-// breakfast 
+  // breakfast
   const breakfastTotal = hasBreakfast
-    ? breakFastPerPerson * numGuests * numNights
+    ? breakfastPrice * numGuests * numNights
     : 0;
-
 
   const totalAmount = stayPrice + breakfastTotal;
 
+  console.log({
+    bookingid: bookingId,
+    cabinprice: cabinPrice,
+    extraPrice: extraPrice,
+    totalprice: totalPrice,
+    stayprice: stayPrice,
+    totalamount: totalAmount,
+    guest: numGuests,
+  });
 
   const handleCheckIn = () => {
     if (!paymentConfirmed) {
       alert("Please confirm payment before checking in");
       return;
     }
-    const breakfastData = {hasBreakfast}
+    const breakfastData = { hasBreakfast };
     checkin({ bookingId, breakfastData });
   };
 
-  const isCheckedIn = booking.status === "checked-in";
-  const isCheckedOut = booking.status === "checked-out";
-
+  //  if (true) return <SpinnerMiniCustom />;
   return (
     <div className="bg-white dark:bg-slate-800/55 lg:rounded-t-xl lg:rounded-b-xl ">
       {/* Hero Section - Cabin Image with Overlays */}
@@ -111,7 +115,10 @@ export default function BookingDetailContent({
                   <span className="material-symbols-outlined text-amber-400">
                     calendar_today
                   </span>
-                  <span className="text-sm font-medium">{formatBookingDate(startDate)} — {formatBookingDate(endDate)}</span>
+                  <span className="text-sm font-medium">
+                    {formatBookingDate(startDate)} —{" "}
+                    {formatBookingDate(endDate)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-amber-400">
@@ -127,7 +134,7 @@ export default function BookingDetailContent({
               <p className="text-white/40 md:text-white text-[10px] font-bold uppercase tracking-widest mb-3">
                 Primary Resident
               </p>
-              <h3 className="text-white md:text-white/85 lg:text-white mb-1 " >
+              <h3 className="text-white md:text-white/85 lg:text-white mb-1 ">
                 {guestName}
               </h3>
               <p className="text-slate-300 font-medium text-sm">{email}</p>
@@ -182,7 +189,7 @@ export default function BookingDetailContent({
                       Breakfast included
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      ${breakFastPerPerson} per person per night
+                      ${breakfastPrice} per person per night
                     </p>
                   </div>
                 </div>
@@ -218,87 +225,158 @@ export default function BookingDetailContent({
           )}
 
           {/* Payment Summary Section */}
-          <div>
-            <h3 className="text-slate-900 dark:text-white mb-5">
-              Payment Summary
-            </h3>
+          {status !== "unconfirmed" ? (
+            // <SpinnerSimple />
 
-            <div className="space-y-3 mb-5">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400">
-                  Cabin ({booking.cabins.regularPrice}{discount && ` - ${discount}`} × {booking.numNights}) nights
-                  
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  ${stayPrice.toFixed(2)}
-                </span>
+            <div>
+              <div className="price-summary">
+                <h3 className="text-slate-900 dark:text-white mb-5">
+                  Payment Summary
+                </h3>
+                <div className="space-y-2 mb-5 mx-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-600   dark:text-slate-400">
+                      <p className="font-semibold">Cabin-discount / Night</p>
+                      <p className="text-sm">
+                        ( {booking.cabins.regularPrice}
+                        {discount && ` - ${discount}`} ) × {booking.numNights}
+                      </p>
+                    </span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {(cabinPrice * numNights).toFixed(2)}
+                    </span>
+                  </div>
+                  {extraPrice && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 font-semibold  dark:text-slate-400">
+                        <p className="font-semibold">Extras:</p>
+                        <p className="text-sm">
+                          ( {booking.numGuests} × {booking.numNights} )
+                        </p>
+                      </span>
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {extraPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-gradient-to-r from-primary/5 to-blue-500/5 dark:from-primary/10 dark:to-blue-500/10 rounded-lg p-5 mb-4 md:mb-6">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-slate-900 dark:text-white">Total:</h4>
+                    <span className="text-xl md:text-3xl font-bold text-primary">
+                      ${totalPrice.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               </div>
+            </div>
+          ) : (
+            <div>
+              <h3 className="text-slate-900 dark:text-white mb-5">
+                Payment Summary
+              </h3>
 
-              {hasBreakfast && (
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-600 dark:text-slate-400">
-                    Breakfast ({booking.numGuests} guests × {booking.numNights}{" "}
-                    nights)
-                  </span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                   ${breakfastTotal.toFixed(2)}
-                  </span>
+              {isLoadingSettings ? (
+                <SpinnerSimple />
+              ) : (
+                <div>
+                  <div className="space-y-3 mb-5 mx-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400">
+                        <p className="font-semibold  ">
+                          Cabin-discount / Night
+                        </p>
+
+                        <p className="text-sm">
+                          ( {booking.cabins.regularPrice}
+                          {discount && ` - ${discount}`} ) × {booking.numNights}
+                        </p>
+                      </span>
+
+                      <span className="font-semibold  text-slate-900 dark:text-white">
+                        ${stayPrice.toFixed(2)}
+                      </span>
+                    </div>
+
+                    {hasBreakfast && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600 dark:text-slate-400">
+                          <p className="font-semibold ">Breakfast / Night</p>
+                          <p className="text-sm">
+                            ( {booking.numGuests} × {booking.numNights} )
+                          </p>
+                        </span>
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          ${breakfastTotal.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Total Amount - Prominent */}
+                  <div className="bg-gradient-to-r from-primary/5 to-blue-500/5 dark:from-primary/10 dark:to-blue-500/10 rounded-lg p-5 mb-4 md:mb-6">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-slate-900 dark:text-white">
+                        Total Amount
+                      </h4>
+                      <span className="text-xl md:text-3xl font-bold text-primary">
+                        ${totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Payment Confirmation - Only show if not checked in/out */}
+                  {!isCheckedIn && !isCheckedOut && (
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <div className="relative mt-0.5">
+                          <input
+                            type="checkbox"
+                            checked={paymentConfirmed}
+                            onChange={(e) =>
+                              setPaymentConfirmed(e.target.checked)
+                            }
+                            className="peer sr-only"
+                          />
+                          <div
+                            className={`size-5 rounded border-2 transition-all ${
+                              paymentConfirmed
+                                ? "bg-primary border-primary"
+                                : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"
+                            }`}
+                          >
+                            {paymentConfirmed && (
+                              <Icon
+                                name="check"
+                                size={14}
+                                className="text-white"
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                            Confirm payment received
+                          </p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                            I confirm that{" "}
+                            <span className="font-medium text-slate-900 dark:text-white">
+                              {booking.guests.fullName}
+                            </span>{" "}
+                            has paid the total amount of{" "}
+                            <span className="font-medium text-primary">
+                              ${totalAmount.toFixed(2)}
+                            </span>
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-
-            {/* Total Amount - Prominent */}
-            <div className="bg-gradient-to-r from-primary/5 to-blue-500/5 dark:from-primary/10 dark:to-blue-500/10 rounded-lg p-5 mb-4 md:mb-6">
-              <div className="flex justify-between items-center">
-                <h4 className="text-slate-900 dark:text-white">Total Amount</h4>
-                <span className="text-xl md:text-3xl font-bold text-primary">
-                  ${totalAmount.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            {/* Payment Confirmation - Only show if not checked in/out */}
-            {!isCheckedIn && !isCheckedOut && (
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="relative mt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={paymentConfirmed}
-                      onChange={(e) => setPaymentConfirmed(e.target.checked)}
-                      className="peer sr-only"
-                    />
-                    <div
-                      className={`size-5 rounded border-2 transition-all ${
-                        paymentConfirmed
-                          ? "bg-primary border-primary"
-                          : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"
-                      }`}
-                    >
-                      {paymentConfirmed && (
-                        <Icon name="check" size={14} className="text-white" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
-                      Confirm payment received
-                    </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                      I confirm that{" "}
-                      <span className="font-medium text-slate-900 dark:text-white">
-                        {booking.guests.fullName}
-                      </span>{" "}
-                      has paid the total amount of{" "}
-                      <span className="font-medium text-primary">
-                        ${totalAmount.toFixed(2)}
-                      </span>
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -383,7 +461,9 @@ export default function BookingDetailContent({
               <>
                 <Button
                   onClick={() => handleCheckIn()}
-                  disabled={!paymentConfirmed || isCheckingIn}
+                  disabled={
+                    !paymentConfirmed || isCheckingIn || isLoadingSettings
+                  }
                   size="md"
                   icon={
                     isCheckingIn ? (

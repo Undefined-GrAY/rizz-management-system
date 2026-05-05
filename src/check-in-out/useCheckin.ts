@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { updateBooking, updateCheckinWithCalc } from "../service/apiBookings"; // Adjust path
+import {
+  updateBookingPayment,
+  updateCheckinWithCalc,
+} from "../service/apiBookings"; // Adjust path
 import { type Database } from "../types/supabase"; // Adjust path
 
 // Define the arguments for the mutation function
@@ -25,20 +28,22 @@ export function useCheckin() {
     CheckinArgs // The type of variables passed to mutate()
   >({
     mutationFn: ({ bookingId, breakfastData }) => {
-      if (breakfastData && Object.keys(breakfastData).length > 0) {
+      if (breakfastData?.hasBreakfast === true) {
         const hasBreakfast = breakfastData.hasBreakfast;
-        return updateCheckinWithCalc(bookingId, hasBreakfast);
+
+        const isPaid = true;
+        return updateCheckinWithCalc(bookingId, hasBreakfast, isPaid);
       } else {
-        //     // Dashboard path: No new data, just flip the status
-        return updateBooking(bookingId, { status: "checked-in", isPaid: true });
+        const status = "checked-in";
+        const isPaid = true;
+        return updateBookingPayment(bookingId, status, isPaid);
       }
     },
-    // updateCheckin(bookingId, hasBreakfast),
 
     onSuccess: (data) => {
       toast.success(`Booking #${data.id} successfully checked in`);
       queryClient.invalidateQueries({ type: "active" });
-      navigate("/");
+      // navigate("/");
     },
 
     onError: () => toast.error("There was an error while checking in"),
@@ -46,19 +51,3 @@ export function useCheckin() {
 
   return { checkin, isCheckingIn };
 }
-
-// // Inside your useCheckin hook
-// mutationFn: ({ bookingId, breakfastData }) => {
-//   // Check if breakfastData exists and isn't empty
-//   if (breakfastData && Object.keys(breakfastData).length > 0) {
-
-//     // Destructure ONLY what the calc function needs
-//     const { hasBreakfast, numGuests, numNights } = breakfastData;
-
-//     // Send those specific values to your special backend function
-//     return updateCheckinWithCalc(bookingId, { hasBreakfast, numGuests, numNights });
-//   } else {
-//     // Dashboard path: No new data, just flip the status
-//     return updateBooking(bookingId, { status: "checked-in", isPaid: true });
-//   }
-// }

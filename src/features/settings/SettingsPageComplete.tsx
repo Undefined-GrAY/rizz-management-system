@@ -1,9 +1,9 @@
 import { Header } from "../../ui/Header";
 
 import { UpdateHotelSettings } from "./UpdateHotelSettings";
-import { useQuery } from "@tanstack/react-query";
-import { getSettings } from "../../service/apiSettings";
+
 import { Spinner } from "../../ui/Spinner";
+import UseSettings from "./UseSettings";
 
 const mockUser = {
   id: "1",
@@ -15,11 +15,7 @@ const mockUser = {
 };
 
 export default function SettingsPage() {
-  const { data: settings, isLoading } = useQuery({
-    queryKey: ["settings"],
-    queryFn: getSettings,
-    retry: false,
-  });
+  const { settings, isLoading } = UseSettings()
 
   if (isLoading)
     return (

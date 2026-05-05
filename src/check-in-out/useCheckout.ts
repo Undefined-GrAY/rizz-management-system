@@ -4,9 +4,9 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 interface BookingResponse {
-  id: number | string;
-  status: string;
-  [key: string]: any; // Catch-all for other booking properties
+  id: number;
+  // status: string;
+  // [key: string]: any; // Catch-all for other booking properties
 }
 
 export function useCheckout() {

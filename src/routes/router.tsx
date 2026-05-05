@@ -66,4 +66,4 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-// element: <BookingDetailPage />
+

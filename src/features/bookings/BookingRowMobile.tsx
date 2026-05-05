@@ -82,7 +82,7 @@ export default function BookingRowMobile({ booking, mutate, isPending }: Booking
       <Table.Cell className=" ">
         <div className="flex flex-col">
           <span className="text-[11px] font-semibold text-slate-400 uppercase md:hidden">
-            {cabinName}
+            {bookingId}
           </span>
           <span className="text-sm font-medium md:text-sm">
             {formatBookingDate(startDate)} — {formatBookingDate(endDate)}

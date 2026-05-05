@@ -118,10 +118,32 @@ export async function getBooking(id: number): Promise<BookingpageType> {
   return data as BookingpageType;
 }
 
+export async function updateBookingPayment(
+  id: number,
+  status: string = "unconfirmed",
+  isPaid: boolean,
+): Promise<Booking> {
+  console.log("booking id:", id, "status:", status, "isPaid:", isPaid );
+  // We call the SQL function we created in Supabase
+  const { data, error } = await supabase.rpc("update_booking_payment", {
+    p_booking_id: id,
+    p_is_paid: isPaid,
+    p_status: status,
+  });
+
+  if (error) {
+    console.error(error.message);
+    throw new Error("Booking payment and totals could not be updated");
+  }
+
+  return data as Booking;
+}
+
 export async function updateBooking(
   id: number,
   obj: UpdateBooking,
 ): Promise<Booking> {
+  
   const { data, error } = await supabase
     .from("bookings")
     .update(obj)
@@ -140,11 +162,14 @@ export async function updateBooking(
 export async function updateCheckinWithCalc(
   bookingId: number,
   hasBreakfast: boolean,
+   isPaid: boolean,
 ): Promise<Booking> {
   // .rpc() is the Supabase method to call your PostgreSQL functions
+  console.log("booking id:", bookingId, "hasBreakfast:", hasBreakfast);
   const { data, error } = await supabase.rpc("checkin_and_recalculate", {
     p_booking_id: bookingId,
     p_has_breakfast: hasBreakfast,
+     p_is_paid: isPaid,
   });
 
   if (error) {
@@ -185,8 +210,6 @@ export async function getTodaysActivity(): Promise<TodaysActivity[]> {
 export async function getRecentBookings(
   startDate: string,
 ): Promise<recentBooking> {
-
-
   const { data, error, count } = await supabase
     .from("bookings")
     .select(

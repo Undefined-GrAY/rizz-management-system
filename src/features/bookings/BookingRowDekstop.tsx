@@ -33,7 +33,7 @@ export default function BookingRowDesktop({
             className="size-12 rounded-lg bg-cover bg-center shrink-0"
             style={{ backgroundImage: `url(${cabinImage})` }}
           />
-          <span className="font-semibold text-sm capitalize">{cabinName}</span>
+          <span className="font-semibold text-sm capitalize">{/**cabinName */ bookingId}</span>
         </div>
       </Table.Cell>
 
