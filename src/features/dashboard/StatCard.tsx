@@ -32,7 +32,7 @@ export function StatCard({
           <Icon
             name={icon}
             size={16}
-            className={`${iconColor} sm:w-6 sm:h-6 -mb-2 -mr-2`}
+            className={`${iconColor} sm:w-6 sm:h-6  md:-mb-2 md:-mr-2`}
           />
         </div>
       </div>
