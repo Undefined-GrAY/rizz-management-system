@@ -41,7 +41,7 @@ export function CabinsTable() {
   return (
     <>
       <Modal>
-        <div className="mb-5 mt-12 gap-8 flex items-center justify-between">
+        <div className="mb-5 mt-2 md:mt-4 gap-8 flex items-center justify-between">
           <h1 className="hidden xl:block text-3xl font-bold text-slate-900 dark:text-white">
             {""}
           </h1>

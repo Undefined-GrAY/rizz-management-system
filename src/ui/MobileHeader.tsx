@@ -49,7 +49,7 @@ export function MobileHeader({
           {/* logo md */}
           <div className="hidden md:flex gap-2">
             <div className=" flex ">
-              <Logo className="size-8 " />
+              <Logo className="h-8" />
             </div>
             <span className="mt-2 md:mt-1 font-bold text-lg md:text-2xl text-slate-900 dark:text-white ">
               Rizz Hotel
@@ -60,7 +60,7 @@ export function MobileHeader({
         <Logo className="size-8 md:hidden" />
 
         {/* Right: Dark Mode + Profile */}
-        <div className="flex xl:hidden items-center gap-3">
+        <div className="flex xl:hidden items-center justify-center gap-6">
           <DarkModeToggle />
           <NavLink to="/account">
             <div className="profile flex gap-4 items-center">

@@ -63,7 +63,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="hidden md:block p-6 border-b border-slate-200 dark:border-slate-800">
         <div className="flex flex-col items-center gap-3">
           <div className=" flex items-center justify-center">
-            <Logo className="mb-1 mx-auto" />
+            <Logo className="mb-1 mx-auto h-28"/>
           </div>
           <div>
             <h2 className="text-nowrap text-slate-900 dark:text-white">

@@ -75,7 +75,7 @@ export const BookingsTable = () => {
   if (error) return <ErrorFallback apiError={String(error)} />;
   return (
     <SubMain>
-      <div className="mb-5 mt-12 md:ml-5  flex gap-8 items-end justify-between">
+      <div className="mb-5 mt-2 md:mt-4 md:ml-5  flex gap-8 items-end justify-between">
         <h1 className="hidden xl:block text-3xl font-bold text-slate-900 dark:text-white">
           {""}
         </h1>
@@ -88,7 +88,7 @@ export const BookingsTable = () => {
         </div>
 
         <Button
-          className="align-bottom text-nowrap border-1 border-slate-900 border-b-blue-400  mr-2"
+          className="align-bottom text-nowrap  "
           icon={<Icon name="add" size={18} />}
         >
           New

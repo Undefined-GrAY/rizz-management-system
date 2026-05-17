@@ -40,7 +40,7 @@ export function DarkModeToggle() {
         <Icon
           name="light_mode"
           size={20}
-          className="text-slate-400 hidden dark:block"
+          className="text-slate-400 hidden dark:block "
         />
       )}
 
